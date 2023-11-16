@@ -222,6 +222,22 @@ class IPAddr
     return str
   end
 
+  # Returns a string containing the IP address representation with prefix.
+  def as_json(options = nil)
+    if ipv4? && prefix == 32
+      to_s
+    elsif ipv6? && prefix == 128
+      to_s
+    else
+      format("%s/%s", to_s, prefix)
+    end
+  end
+
+  # Returns a json string containing the IP address representation.
+  def to_json
+    format("\"%s\"", as_json)
+  end
+
   # Returns a network byte ordered string form of the IP address.
   def hton
     case @family
