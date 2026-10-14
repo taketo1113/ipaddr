@@ -284,7 +284,20 @@ class IPAddr
   end
 
   # Returns a network byte ordered string form of the IP address.
-  def hton
+  def hton_old
+    case @family
+    when Socket::AF_INET
+      return [@addr].pack('N')
+    when Socket::AF_INET6
+      return (0..7).map { |i|
+        (@addr >> (112 - 16 * i)) & 0xffff
+      }.pack('n8')
+    else
+      raise AddressFamilyError, "unsupported address family"
+    end
+  end
+
+  def hton_new
     case @family
     when Socket::AF_INET, Socket::AF_INET6
       value = to_hex
@@ -457,23 +470,41 @@ class IPAddr
 
   # Returns a string for DNS reverse lookup.  It returns a string in
   # RFC3172 form for an IPv6 address.
-  def reverse
+  def reverse_old
     case @family
     when Socket::AF_INET
-      return _reverse + ".in-addr.arpa"
+      return _reverse_old + ".in-addr.arpa"
     when Socket::AF_INET6
-      return ip6_arpa
+      return ip6_arpa_old
+    else
+      raise AddressFamilyError, "unsupported address family"
+    end
+  end
+
+  def reverse_new
+    case @family
+    when Socket::AF_INET
+      return _reverse_new + ".in-addr.arpa"
+    when Socket::AF_INET6
+      return ip6_arpa_new
     else
       raise AddressFamilyError, "unsupported address family"
     end
   end
 
   # Returns a string for DNS reverse lookup compatible with RFC3172.
-  def ip6_arpa
+  def ip6_arpa_old
     if !ipv6?
       raise InvalidAddressError, "not an IPv6 address: #{to_s}"
     end
-    return _reverse + ".ip6.arpa"
+    return _reverse_old + ".ip6.arpa"
+  end
+
+  def ip6_arpa_new
+    if !ipv6?
+      raise InvalidAddressError, "not an IPv6 address: #{to_s}"
+    end
+    return _reverse_new + ".ip6.arpa"
   end
 
   # Returns a string for DNS reverse lookup compatible with RFC1886.
@@ -845,7 +876,20 @@ class IPAddr
     end
   end
 
-  def _reverse
+  def _reverse_old
+    case @family
+    when Socket::AF_INET
+      return (0..3).map { |i|
+        (@addr >> (8 * i)) & 0xff
+      }.join('.')
+    when Socket::AF_INET6
+      return ("%.32x" % @addr).reverse!.gsub!(/.(?!$)/, '\&.')
+    else
+      raise AddressFamilyError, "unsupported address family"
+    end
+  end
+
+  def _reverse_new
     case @family
     when Socket::AF_INET
       return (0..3).map { |i|
