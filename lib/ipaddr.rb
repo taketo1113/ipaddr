@@ -715,6 +715,8 @@ class IPAddr
     requested_family = family
     prefix, prefixlen = addr.split('/', 2)
     if prefix =~ /\A\[(.*)\]\z/i
+      raise InvalidAddressError, "invalid address: #{addr}" if prefixlen
+
       prefix = $1
       family = Socket::AF_INET6
     end

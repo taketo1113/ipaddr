@@ -100,7 +100,7 @@ class TC_IPAddr < Test::Unit::TestCase
     assert_equal("0:0:0:1::", IPAddr.new("0:0:0:1::").to_s)
     assert_equal("2001:200:300::", IPAddr.new("2001:200:300::/48").to_s)
 
-    assert_equal("2001:200:300::", IPAddr.new("[2001:200:300::]/48").to_s)
+    #assert_equal("2001:200:300::", IPAddr.new("[2001:200:300::]/48").to_s)
     assert_equal("1:2:3:4:5:6:7:0", IPAddr.new("1:2:3:4:5:6:7::").to_s)
     assert_equal("0:2:3:4:5:6:7:8", IPAddr.new("::2:3:4:5:6:7:8").to_s)
 
@@ -116,6 +116,10 @@ class TC_IPAddr < Test::Unit::TestCase
     assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("192.168.1.2", Socket::AF_INET6) }
     assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[192.168.1.2]", Socket::AF_INET6) }
     assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[192.168.1.2]", Socket::AF_INET) }
+    assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[::%eth0]/64") }
+    assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[::]/64") }
+    assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[::]/64", Socket::AF_INET) }
+    assert_raise(IPAddr::InvalidAddressError) { IPAddr.new("[::]/64", Socket::AF_INET6) }
     assert_raise(IPAddr::InvalidPrefixError) { IPAddr.new("192.168.0.1/032") }
     assert_raise(IPAddr::InvalidPrefixError) { IPAddr.new("::1/0128") }
     assert_raise(IPAddr::InvalidPrefixError) { IPAddr.new("::1/255.255.255.0") }
